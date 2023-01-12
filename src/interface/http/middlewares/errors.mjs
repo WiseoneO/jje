@@ -28,6 +28,12 @@ const errorMiddleware = (err, req, res, next)=>{
             error = new ErrorHandler(message, 400);
         };
 
+        // Handling wrong JWT token error
+        if(err.name === 'jsonWebTokenError'){
+            const message = 'Json Web token is invalid. Try again!';
+            error = new ErrorHandler(message, 500)
+        }
+
         res.status(err.statusCode).json({
             success: false,
             message: error.message || `Internal Serval Error`

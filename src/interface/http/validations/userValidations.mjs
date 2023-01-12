@@ -19,3 +19,10 @@ export const userValidation = (user)=>{
     }).unknown();
     return schema.validate(user)
 }
+export const resetPassword = (user)=>{
+    const schema = joi.object({
+        newPassword :joiPasswordComplexity(complexityOptions).required(),
+        confirmPassword: joi.string().min(8).max(128).required('Password missmatch').valid(joi.ref('newPassword')),
+    }).unknown();
+    return schema.validate(user)
+}

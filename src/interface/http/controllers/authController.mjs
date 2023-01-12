@@ -1,5 +1,5 @@
 import userModel from '../../../infrastructure/datatbase/models/user.mjs';
-import { userValidation } from '../validations/userValidation.mjs';
+import { userValidation,resetPassword } from '../validations/userValidations.mjs';
 import config from '../../../config/defaults.mjs';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -77,6 +77,7 @@ export const login = async (req, res)=>{
                 name: verifyEmail.name,
                 role: verifyEmail.role
             },config.userSecret,{expiresIn: config.expiresIn});
+            
         
             return res.status(200).json({
                 success: true,
@@ -100,7 +101,7 @@ export const forgotPassword = async(req, res)=>{
         
         let resetToken = crypto.randomBytes(20).toString('hex');
         // Hash resetPassword Token
-        resetToken = crypto.createHash('shake256').digest('hex');
+        resetToken = crypto.createHash('sha256').digest('hex');
 
         // check if the email entered already exist
         const user = await userModel.findOne(email);
@@ -140,6 +141,58 @@ export const forgotPassword = async(req, res)=>{
                 })
             }
         }
+    }catch(error){
+        if(error instanceof Error){
+            return res.status(500).json({
+                success: false,
+                msg: `${error.message}`
+            })
+        }
+    }
+}
+
+
+export const resetUserPassword= async(req, res)=>{
+    try{
+        let {newPassword, confirmPassword} = req.body;
+        const {error} = resetPassword({newPassword, confirmPassword});
+            if(error){
+                return res.status(400).json({
+                    success: false,
+                    msg: `${error}, is required.`
+                });
+            }
+        // encrypt password
+        newPassword = await bcrypt.hash(newPassword, 12);
+
+        // hash url token
+        let tokenParams =req.params.resetToken;
+         tokenParams = crypto.createHash('sha256').digest('hex');
+
+        
+        const user = await userModel.findOne({
+            resetPasswordToken: tokenParams, 
+            resetPasswordExpire: {$lt: Date.now()}
+        });
+
+        if(!user){
+            return res.status(400).json({
+                success :false,
+                msg: 'Password reset token is invalid or has expired.',
+            });
+        }
+
+        // Setup new password
+        user.password = newPassword;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpire = undefined
+
+        await user.save();
+        return res.status(200).json({
+            success: true,
+            msg: `Password reset successfully.`
+        })
+
     }catch(error){
         if(error instanceof Error){
             return res.status(500).json({

@@ -18,12 +18,15 @@ export const verifyToken = async (req, res, next)=>{
         req.user = verified;
         next()
     }catch(error){
-        if (error instanceof Error) {
+        if (error.name === 'JsonWebTokenError') {
             res
               .status(400)
-              .json({ success: false, msg: `${error.message}` });
-            throw new Error(error.message);
-          }
+              .json({ success: false, msg: `Invalid web token. try again!`});
+        }else if(error.name === 'TokenExpiredError'){
+            res
+            .status(400)
+            .json({ success: false, msg: `Json web token is expired. Try again!`});
+        }
     }
 }
 
