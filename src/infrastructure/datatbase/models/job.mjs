@@ -61,7 +61,7 @@ const jobSchema = new Schema({
     },
     jobType: {
         type: String,
-        required: true,
+        required: [true, 'Please enter job type.'],
         enum : {
             values: [
                 'Permanent',
@@ -73,7 +73,7 @@ const jobSchema = new Schema({
     },
     minEducation: {
         type: String,
-        required: true,
+        required: [true, 'Please enter minimum education for the job'],
         enum: {
             values: [
                 'Bachelors',
@@ -89,7 +89,7 @@ const jobSchema = new Schema({
     },
     experience: {
         type: String,
-        required: true,
+        required: [true, 'Please enter experience required for this job.'],
         enum: {
             values : [
                 'No Experience',
@@ -116,6 +116,11 @@ const jobSchema = new Schema({
         type : [Object],
         select: false
     },
+    user: {
+        type : mongoose.Schema.Types.ObjectId,
+        ref : 'UseuserModelr',
+        required: true
+    }
 });
 
 // Creating Job slug before saving
@@ -129,7 +134,7 @@ jobSchema.pre('save', function(next){
 // setting up location
 jobSchema.pre('save', async function(next){
     const loc = await geoCoder.geocode(this.address);
-    
+
     this.location = {
         type: 'Point',
         coordinates: [loc[0].longitude, loc[0].latitude],
