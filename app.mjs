@@ -56,7 +56,7 @@ const limiter = rateLimit({
 // Apply the rate limiting middleware to all requests
 app.use(limiter);
 
-// Setup CORS - Accessible by other DOMImplementation
+// Setup CORS - Accessible by other Domain
 app.use(cors());
 
 // Base route
