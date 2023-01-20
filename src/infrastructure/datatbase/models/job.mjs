@@ -116,11 +116,12 @@ const jobSchema = new Schema({
         type : [Object],
         select: false
     },
-    user: {
-        type : mongoose.Schema.Types.ObjectId,
-        ref : 'UseuserModelr',
-        required: true
+    user : {
+        type : Schema.ObjectId,
+        ref : 'userModel',
+        required : true
     }
+    
 });
 
 // Creating Job slug before saving
@@ -144,5 +145,6 @@ jobSchema.pre('save', async function(next){
         zipcode: loc[0].zipcode,
         country: loc[0].countryCode
     }
+    
 });
 export default model('jobModel', jobSchema);

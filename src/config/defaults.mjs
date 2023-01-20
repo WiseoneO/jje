@@ -31,7 +31,11 @@ const config = {
 
     // MapQuest
     mapquestProvider: process.env.GEOCODER_PROVIDER,
-    mapquestApikey: process.env.GEOCODER_API_KEY
+    mapquestApikey: process.env.GEOCODER_API_KEY,
+
+    // Files
+    max_file_size: process.env.MAX_FILE_SIZE,
+    upload_path: process.env.UPLOAD_PATH
 }
 
 

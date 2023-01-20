@@ -8,7 +8,8 @@ import {
     updateJob,
     deleteJob,
     getJob,
-    jobStats
+    jobStats,
+    apply
 } from '../controllers/jobController.mjs'
 
 router.post('/job/create-job',verifyToken, authorizeRole('employer', 'admin'), newJob);
@@ -18,5 +19,7 @@ router.get('/stats/:topic', jobStats);
 router.get('/jobs/:zipcode/:distance', getJobsInRadius);
 router.put('/jobs/:id/update-job',verifyToken, authorizeRole('employer', 'admin'), verifyToken, updateJob);
 router.delete('/jobs/:id/delete-job',verifyToken, authorizeRole('employer', 'admin'), verifyToken, deleteJob);
+router.put('/job/:id/apply',verifyToken,authorizeRole('user'),apply);
+
 
 export default router

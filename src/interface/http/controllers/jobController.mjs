@@ -4,13 +4,15 @@ import geoCoder from '../utils/geocoder.mjs';
 import ErrorHandler from '../utils/errorHandler.mjs';
 import catchAsyncErrors from '../middlewares/catchAsyncErrors.mjs';
 import ApiFilters from '../utils/apiFilters.mjs';
+import path from 'path'
+import config from '../../../config/defaults.mjs';
 
 export const newJob = async (req, res)=>{
     try{
-        const payload = req.body;
+         req.body.user = req.user.id;
 
         // validate user input
-        const {error} = jobValidation(payload);
+        const {error} = jobValidation(req.body);
             if(error){
                 return res.status(400).json({
                     success: false,
@@ -19,8 +21,7 @@ export const newJob = async (req, res)=>{
             }
         
         // Adding user id to a created job
-        req.body.user = req.user.id;
-        const newJob = await jobModel.create(payload);
+        const newJob = await jobModel.create(req.body);
 
         return res.status(201).json({
             success : true,
@@ -118,6 +119,10 @@ export const updateJob = catchAsyncErrors(async (req, res, next)=>{
         if(!job){
             return next(new ErrorHandler("Job Not Found!", 404))
         }
+        // Check if the user is the owner
+        if(jobModel.user.toString() !== req.use.id && req.user.role !=='admin'){
+            throw new Error(`${req.user.id} is not allowed to update this job`)
+        }
 
         const updatedJob = await jobModel.findOneAndUpdate({_id: jobId}, payload, {new: true});
         return res.status(200).json({
@@ -138,6 +143,21 @@ export const deleteJob = async (req, res)=>{
             return next(new ErrorHandler("Job Not Found!", 404))
         }
 
+        // Check if the user is the owner
+        if(jobModel.user.toString() !== req.use.id && req.user.role !=='admin'){
+            throw new Error(`${req.user.id} is not allowed to delete this job`)
+        }
+
+        // Deleting Files associated with job
+        const delJob = await jobModel.findOne({_id: req.params.id});
+
+        for(let i=0; i<delJob.applicantAppied.length; i++){
+            let filepath = `${__dirname}../../../public/uploads/${delJob.applicantAppied[i].resume}`.replace('\\controllers', '');
+
+            fs.unlink(filepath, err=> {
+                if(err) return console.log(err);
+            });
+        }
         return res.status(200).json({
             success : true,
             msg:`Job deleted successfully`
@@ -156,7 +176,11 @@ export const deleteJob = async (req, res)=>{
 // Get a single job by id and slug
 export const getJob = async (req, res)=>{
     try{
-        const job = await jobModel.find({$and: [{_id: req.params.id},{slug: req.params.slug}]});
+        const job = await jobModel.find({$and: [{_id: req.params.id},{slug: req.params.slug}]})
+        .populate({
+            path: 'user',
+            select: 'name'
+        });
         if(!job || job.length === 0) {
             return res.status(404).json({
                 success: false,
@@ -219,3 +243,66 @@ export const jobStats = async (req, res)=>{
         }
     }
 }
+
+export const apply = catchAsyncErrors(async(req, res)=>{
+    let job = await jobModel.findById(req.params.id).select('+applicantAppied');
+ 
+    if(!job) throw new Error('Job not found!')
+ 
+     //    check that job last date has been pass
+     if(job.lastDate < new Date(Date.now())){
+         return res.status(400).json({
+             success: false,
+             msg: 'You cannot apply for this job. Date is over.'
+         })
+     }
+
+    //  Check if user has applied before
+    for(let i=0; i<job.applicantAppied.length; i++){
+        if(job.applicantAppied[i].id === req.user.id){
+            throw Error('you have already applied to this job')
+        }
+    }
+    
+     // check the files
+     if(!req.files){
+         throw new Error('Please uplolad file.')
+     }
+ 
+     let file = req.files.file;
+ 
+     // check file type
+     const supportedFiles = /.docs|.pdf/;
+     if(!supportedFiles.test(path.extname(file.name))){
+          throw  Error('Please upload document file.')
+         };
+ 
+ 
+     // check document size
+     if(file.size > config.max_file_size){
+         throw Error('Please upload file less than 2MB') 
+     }
+ 
+     // Renaming resume
+     file.name = `${req.user.name.replace(' ', '_')}_${job._id}${path.parse(file.name).ext}`
+ 
+     // store file
+     file.mv(`${config.upload_path}/${file.name}`, async err=>{
+         if(err){
+             console.log(err);
+             return next(new Error('resume upload failed.'))
+         }
+ 
+         await jobModel.findByIdAndUpdate(req.params.id, {$push: {
+             applicantAppied: {
+                 id: req.user.id,
+                 resume: file.name
+             }
+         }}, {new: true})
+     })
+     return res.status(200).json({
+         success : true,
+         msg: `Applied to Job successfully.`,
+         data: file.name
+     })
+ })

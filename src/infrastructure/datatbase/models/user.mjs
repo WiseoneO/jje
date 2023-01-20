@@ -27,6 +27,20 @@ const userSchema = new Schema({
     },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
-});
+},
+    {
+        toJSON: {virtuals: true},
+        toObject: {virtuals:true}
+    },
+);
+
+userSchema.virtual('jobsPublished', {
+    ref: 'jobModel',
+    localField: '_id',
+    foreignField: 'user',
+    justOne: false
+  });
+  
+
 
 export default model('userModel', userSchema);

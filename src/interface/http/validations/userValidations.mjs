@@ -19,10 +19,24 @@ export const userValidation = (user)=>{
     }).unknown();
     return schema.validate(user)
 }
+export const updateUserData = (user)=>{
+    const schema = joi.object({
+        name: joi.string().alphanum().min(3).max(30).required(),
+        email: joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }),
+    }).unknown();
+    return schema.validate(user)
+}
 export const resetPassword = (user)=>{
     const schema = joi.object({
         newPassword :joiPasswordComplexity(complexityOptions).required(),
         confirmPassword: joi.string().min(8).max(128).required('Password missmatch').valid(joi.ref('newPassword')),
+    }).unknown();
+    return schema.validate(user)
+}
+export const changedPassword = (user)=>{
+    const schema = joi.object({
+        newPassword :joiPasswordComplexity(complexityOptions).required(),
+        currentPassword :joiPasswordComplexity(complexityOptions).required(),
     }).unknown();
     return schema.validate(user)
 }
