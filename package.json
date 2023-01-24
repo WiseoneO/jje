@@ -2,7 +2,10 @@
   "name": "jobSearch",
   "version": "1.0.0",
   "description": "Finding new and exciting job made easier",
-  "main": "app.Mjs",
+  "main": "app.js",
+  "engine":{
+    "node": "18.x"
+  },
   "author": "wiseone",
   "license": "MIT",
   "scripts": {
