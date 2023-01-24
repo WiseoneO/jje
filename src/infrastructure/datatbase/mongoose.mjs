@@ -6,7 +6,7 @@ const logger = pino()
 
 export const connectDB = ()=>{
     logger.info(`Connecting to MongDB database ...`);
-    mongoose.connect(config.localMongod, ()=>{
+    mongoose.connect(config.liveMongod, ()=>{
         logger.info(`Database Connected Successfully...`)
     });
 }

@@ -17,6 +17,7 @@ import mongoSanitize  from 'express-mongo-sanitize';
 import  xss from 'xss-clean';
 import hpp from 'hpp';
 import cors from 'cors';
+import bodyParser from 'body-parser';
 
 
 // handling uncaught exception
@@ -29,6 +30,8 @@ process.on('uncaughtException', err=>{
 // Database connection trigger
 connectDB();
 
+// Setup bodyParser
+app.use(bodyParser.urlencoded({extended: true}))
 // Setup security headers
 app.use(helmet())
 
