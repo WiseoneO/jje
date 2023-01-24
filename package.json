@@ -2,14 +2,14 @@
   "name": "jobSearch",
   "version": "1.0.0",
   "description": "Finding new and exciting job made easier",
-  "main": "app.js",
+  "main": "app.mjs",
   "engine":{
     "node": "18.x"
   },
   "author": "wiseone",
   "license": "MIT",
   "scripts": {
-    "start": "SET NODE_ENV=production& node app.mjs",
+    "start": "nodemon app.mjs",
     "dev": "nodemon app.mjs",
     "prod": "SET NODE_ENV=production& nodemon app.mjs"
   },
