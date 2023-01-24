@@ -6,7 +6,7 @@
   "author": "wiseone",
   "license": "MIT",
   "scripts": {
-    "start": "node app.mjs",
+    "start": "SET NODE_ENV=production& nodemon app.mjs",
     "dev": "nodemon app.mjs",
     "prod": "SET NODE_ENV=production& nodemon app.mjs"
   },
