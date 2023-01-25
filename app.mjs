@@ -63,7 +63,7 @@ app.use(limiter);
 app.use(cors());
 
 // Base route
-app.get('/api/v1', (req, res)=>{
+app.get('/', (req, res)=>{
     res.status(200).json({
         success: true,
         env: config.env,
